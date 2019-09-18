@@ -1,15 +1,15 @@
 import React, { Component } from 'react'
 
 class MyElement extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       jobs: []
     };
   }
+
   render() {
-    return
-  (<div>
+    return <div>
   <table className="table">
   <thead>
     <tr>
@@ -23,20 +23,20 @@ class MyElement extends Component {
   </thead>
   <tbody>
       {
-        this.state.jobs.map(job => (
-          "<tr>",
-            "<td>",job.title,"</td>",
-            "<td>",job.companyname,"</td>",
-            "<td>",job.location,"</td>}",
-            "<td>",job.experience,"</td>",
-            "<td>",job.salary,"</td>",
-            "<td>",job.applylink,"</td>",
-          "</tr>"
-      ))
+        this.state.jobs.map(job =>
+          <tr>
+            <td>{job.title}</td>
+            <td>{job.companyname}</td>
+            <td>{job.location}</td>
+            <td>{job.experience}</td>
+            <td>{job.salary}</td>
+            <td>{job.applylink}</td>
+          </tr>
+      )
       }
     </tbody>
     </table>
-    </div>);
+    </div>
   }
   componentDidMount() {
     fetch('https://nut-case.s3.amazonaws.com/jobs.json')
