@@ -1,27 +1,42 @@
 import React, { Component } from 'react'
 
 class MyElement extends Component {
-  constructor(props) {
-    super(props);
+  constructor() {
+    super();
     this.state = {
       jobs: []
     };
   }
   render() {
-    return <ol>
+    return
+  (<div>
+  <table className="table">
+  <thead>
+    <tr>
+      <th scope="col">TITLE</th>
+      <th scope="col">Company Name</th>
+      <th scope="col">Location</th>
+      <th scope="col">Experience</th>
+      <th scope="col">Salary</th>
+      <th scope="col">Apply Link</th>
+    </tr>
+  </thead>
+  <tbody>
       {
         this.state.jobs.map(job => (
-          <li key={job._id}>
-            TITLE : {job.title}
-            COMP : {job.companyname}
-            LOC : {job.location}
-            EXP : {job.experience}
-            SAL : {job.salary}
-            APPLY : {job.applylink}
-          </li>
+          "<tr>",
+            "<td>",job.title,"</td>",
+            "<td>",job.companyname,"</td>",
+            "<td>",job.location,"</td>}",
+            "<td>",job.experience,"</td>",
+            "<td>",job.salary,"</td>",
+            "<td>",job.applylink,"</td>",
+          "</tr>"
       ))
       }
-    </ol>;
+    </tbody>
+    </table>
+    </div>);
   }
   componentDidMount() {
     fetch('https://nut-case.s3.amazonaws.com/jobs.json')
