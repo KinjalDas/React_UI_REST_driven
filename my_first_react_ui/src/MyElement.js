@@ -10,15 +10,15 @@ class MyElement extends Component {
 
   render() {
     return <div>
-  <table className="table">
-  <thead>
+  <table className="table table-hover table-condensed table-sm">
+  <thead className="thead-dark">
     <tr>
-      <th scope="col">TITLE</th>
-      <th scope="col">Company Name</th>
-      <th scope="col">Location</th>
-      <th scope="col">Experience</th>
-      <th scope="col">Salary</th>
-      <th scope="col">Apply Link</th>
+      <th scope="col" className="th-sm">TITLE</th>
+      <th scope="col" className="th-sm">Company Name</th>
+      <th scope="col" className="th-sm">Location</th>
+      <th scope="col" className="th-sm">Experience</th>
+      <th scope="col" className="th-sm">Salary</th>
+      <th scope="col" className="th-sm">Apply Link</th>
     </tr>
   </thead>
   <tbody>
