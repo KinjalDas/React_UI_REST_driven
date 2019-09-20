@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import Table from 'react-bootstrap/Table';
 
 class MyElement extends Component {
   constructor(props) {
@@ -10,7 +11,7 @@ class MyElement extends Component {
 
   render() {
     return <div>
-  <table className="table table-hover table-condensed table-sm">
+  <Table striped bordered hover>
   <thead className="thead-dark">
     <tr>
       <th scope="col" className="th-sm">TITLE</th>
@@ -35,7 +36,7 @@ class MyElement extends Component {
       )
       }
     </tbody>
-    </table>
+    </Table>
     </div>
   }
   componentDidMount() {
