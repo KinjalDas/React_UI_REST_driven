@@ -10,7 +10,6 @@ class App extends Component {
    state = {
       issues: [],
       show:false,
-      setShow:false,
       issue: null,
       loggedin: false,
       showlogin: true,
@@ -30,19 +29,37 @@ class App extends Component {
 
   handleShow = (issue) => {
     console.log(issue);
-    this.setState({issue:issue,show:true,setShow:true})
+    this.setState({issue:issue,show:true})
   }
 
   handleClose = () => {
-    this.setState({show:false,setShow:false})
+    this.setState({show:false})
   }
 
   closelogin = () => {
     this.setState({showlogin:false,username:null,password:null})
   }
 
-  login = () => {
+  async login(email,pass){
+    console.log(email);
+    console.log(pass);
     //add login code here from login modal
+    var encodedString = new Buffer(email + ':' + pass).toString('base64');
+    console.log(encodedString);
+    fetch("https://alm-2.corp.hpicloud.net:443/qcbin/api/authentication/sign-in",{
+      method: "GET",
+      mode: "no-cors",
+      headers: {'Accept':'application/xml','Content-Type': 'application/XML', 'Authorization': 'Basic '+ encodedString}
+    })
+    .then(function(response) {
+      if(response.ok) {
+        return response.blob();
+      }
+      throw new Error('Network response was not ok.');
+    })
+    .catch(function(error) {
+      console.log('There has been a problem with your fetch operation: ', error.message);
+    });
     this.setState({showlogin:false,username:"",password:""})
   }
 
@@ -58,13 +75,25 @@ class App extends Component {
           <Modal.Title>Login</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          Login
+        <Form>
+          <Form.Group controlId="formBasicEmail">
+            <Form.Label>Email address</Form.Label>
+            <Form.Control type="email" placeholder="Enter email" ref={(email) => {this.email = email}}/>
+          </Form.Group>
+          <Form.Group controlId="formBasicPassword">
+            <Form.Label>Password</Form.Label>
+            <Form.Control type="password" placeholder="Password" ref={(pass) => {this.pass = pass}}/>
+          </Form.Group>
+          <Form.Text className="text-muted">
+            Enter your ALM credentials.
+          </Form.Text>
+        </Form>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={this.closelogin}>
             Close
           </Button>
-          <Button variant="primary" onClick={(e) => this.login()}>
+          <Button variant="primary" onClick={(e) => this.login(this.email.value,this.pass.value)}>
             Login
           </Button>
         </Modal.Footer>
@@ -89,6 +118,7 @@ class App extends Component {
               <th>#</th>
               <th>CR ID</th>
               <th>TITLE</th>
+              <th>Project</th>
               <th>Component</th>
               <th>Open</th>
               </tr>
@@ -100,6 +130,7 @@ class App extends Component {
               <td><Button variant="primary" onClick={(e) => this.handleShow(issues)}>{issues.id}</Button></td>
               <td>{issues.CRID}</td>
               <td>{issues.Title}</td>
+              <td>{issues.Project}</td>
               <td>{issues.Component}</td>
               <td>{issues.Open?<FontAwesomeIcon icon={faCheck}/>:<FontAwesomeIcon icon={faTimes}/>}</td>
             </tr>
@@ -118,14 +149,20 @@ class App extends Component {
           Component : {this.state.issue?this.state.issue.Component:""}<br/>
           Description : {this.state.issue?this.state.issue.Description:""}<br/>
           Progress/Comments : {this.state.issue?this.state.issue.CRID:""}<br/>
-          Open? : {this.state.issue?[(this.state.issues.Open?<FontAwesomeIcon icon={faCheck}/>:null),<FontAwesomeIcon key="false" icon={faTimes}/>]:<FontAwesomeIcon key="false" icon={faTimes}/>}<br/>
+          Open? : {
+            this.state.issue?
+            (
+               this.state.issue.Open?<FontAwesomeIcon icon={faCheck}/>:<FontAwesomeIcon icon={faTimes}/>
+            )
+            :<FontAwesomeIcon key="false" icon={faTimes}/>
+          }<br/>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={this.handleClose}>
-              Close
+            <Button variant="success" onClick={this.handleClose}>
+              Edit
             </Button>
-            <Button variant="primary" onClick={this.handleClose}>
-              Save Changes
+            <Button variant="danger" onClick={this.handleClose}>
+              Delete
             </Button>
           </Modal.Footer>
         </Modal>
