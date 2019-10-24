@@ -10,7 +10,12 @@ class App extends Component {
    state = {
       issues: [],
       show:false,
-      setShow:false
+      setShow:false,
+      issue: null,
+      loggedin: false,
+      showlogin: true,
+      username: null,
+      password: null
   }
 
   componentDidMount() {
@@ -23,24 +28,44 @@ class App extends Component {
     .catch(console.log)
   }
 
+  handleShow = (issue) => {
+    console.log(issue);
+    this.setState({issue:issue,show:true,setShow:true})
+  }
+
+  handleClose = () => {
+    this.setState({show:false,setShow:false})
+  }
+
+  closelogin = () => {
+    this.setState({showlogin:false,username:null,password:null})
+  }
+
+  login = () => {
+    //add login code here from login modal
+    this.setState({showlogin:false,username:"",password:""})
+  }
+
+  showlogin = () => {
+    this.setState({showlogin:true})
+  }
+
   render(){
-
-    let handleClose = () => {this.setState({show:false,setShow:false})};
-    let handleShow = () => {this.setState({show:true,setShow:true})};
-
     return (
       <div className="App">
-      <Modal show={this.state.show} onHide={handleClose}>
+      <Modal show={this.state.showlogin} onHide={this.closelogin}>
         <Modal.Header closeButton>
-          <Modal.Title>Modal heading</Modal.Title>
+          <Modal.Title>Login</Modal.Title>
         </Modal.Header>
-        <Modal.Body>Woohoo, you're reading this text in a modal!</Modal.Body>
+        <Modal.Body>
+          Login
+        </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
+          <Button variant="secondary" onClick={this.closelogin}>
             Close
           </Button>
-          <Button variant="primary" onClick={handleClose}>
-            Save Changes
+          <Button variant="primary" onClick={(e) => this.login()}>
+            Login
           </Button>
         </Modal.Footer>
       </Modal>
@@ -49,7 +74,8 @@ class App extends Component {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="mr-auto">
-              <Nav.Link href="#add">Add Issue</Nav.Link>
+              <Nav.Link><Button>Add Issue</Button></Nav.Link>
+              <Nav.Link><Button onClick={this.showlogin}>Login</Button></Nav.Link>
             </Nav>
             <Form inline>
               <FormControl type="text" placeholder="Search" className="mr-bg-2" />
@@ -71,7 +97,7 @@ class App extends Component {
           {
             this.state.issues.map((issues) => (
             <tr key={issues.id}>
-              <td><Button variant="primary" onClick={handleShow}>{issues.id}</Button></td>
+              <td><Button variant="primary" onClick={(e) => this.handleShow(issues)}>{issues.id}</Button></td>
               <td>{issues.CRID}</td>
               <td>{issues.Title}</td>
               <td>{issues.Component}</td>
@@ -81,6 +107,28 @@ class App extends Component {
           }
           </tbody>
         </Table>
+        <Modal show={this.state.show} onHide={this.handleClose}>
+          <Modal.Header closeButton>
+            <Modal.Title>Issue # {this.state.issue?this.state.issue.id:-1}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+          CR ID : {this.state.issue?this.state.issue.CRID:-1}<br/>
+          Title : {this.state.issue?this.state.issue.Title:""}<br/>
+          Project : {this.state.issue?this.state.issue.Project:""}<br/>
+          Component : {this.state.issue?this.state.issue.Component:""}<br/>
+          Description : {this.state.issue?this.state.issue.Description:""}<br/>
+          Progress/Comments : {this.state.issue?this.state.issue.CRID:""}<br/>
+          Open? : {this.state.issue?[(this.state.issues.Open?<FontAwesomeIcon icon={faCheck}/>:null),<FontAwesomeIcon key="false" icon={faTimes}/>]:<FontAwesomeIcon key="false" icon={faTimes}/>}<br/>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={this.handleClose}>
+              Close
+            </Button>
+            <Button variant="primary" onClick={this.handleClose}>
+              Save Changes
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </div>
      );
   }
