@@ -40,27 +40,27 @@ class App extends Component {
     this.setState({showlogin:false,username:null,password:null})
   }
 
-  async login(email,pass){
+  async login(event,email,pass){
+    event.preventDefault();
     console.log(email);
     console.log(pass);
     //add login code here from login modal
     var encodedString = new Buffer(email + ':' + pass).toString('base64');
+    var login = true;
     console.log(encodedString);
-    fetch("https://alm-2.corp.hpicloud.net:443/qcbin/api/authentication/sign-in",{
-      method: "GET",
+    var res = await fetch("https://alm-2.corp.hpicloud.net:443/qcbin/authentication-point/alm-authenticate",{
+      credentials: "include",
+      method: "POST",
       mode: "no-cors",
-      headers: {'Accept':'application/xml','Content-Type': 'application/XML', 'Authorization': 'Basic '+ encodedString}
+      headers: {"Accept":"application/json","Content-Type": "application/json"},
+      body: "<alm-authentication><user>"+email+"</user><password>"+pass+"</password></alm-authentication>",
     })
-    .then(function(response) {
-      if(response.ok) {
-        return response.blob();
-      }
-      throw new Error('Network response was not ok.');
-    })
-    .catch(function(error) {
-      console.log('There has been a problem with your fetch operation: ', error.message);
-    });
-    this.setState({showlogin:false,username:"",password:""})
+    .then((response) => {return response;})
+    .catch((error) => {login = false;console.log(error);});
+    console.log(res);
+    if(!login){
+      this.setState({showlogin:false, loggedin:true, username:email, password:pass})
+    }
   }
 
   showlogin = () => {
@@ -93,7 +93,7 @@ class App extends Component {
           <Button variant="secondary" onClick={this.closelogin}>
             Close
           </Button>
-          <Button variant="primary" onClick={(e) => this.login(this.email.value,this.pass.value)}>
+          <Button variant="primary" onClick={(e) => this.login(e,this.email.value,this.pass.value)}>
             Login
           </Button>
         </Modal.Footer>
@@ -104,7 +104,7 @@ class App extends Component {
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="mr-auto">
               <Nav.Link><Button>Add Issue</Button></Nav.Link>
-              <Nav.Link><Button onClick={this.showlogin}>Login</Button></Nav.Link>
+              <Nav.Link>{this.state.loggedin?<Button onClick={this.showlogin}>Logout</Button>:<Button onClick={this.showlogin}>Login</Button>}</Nav.Link>
             </Nav>
             <Form inline>
               <FormControl type="text" placeholder="Search" className="mr-bg-2" />
