@@ -3,7 +3,7 @@ import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Button,Table,Nav,Navbar,Form,FormControl,Modal } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck,faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faCheck,faTimes,faPlus,faEdit,faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 
 class App extends Component {
 
@@ -12,11 +12,14 @@ class App extends Component {
       show:false,
       issue: null,
       loggedin: false,
-      showlogin: true,
+      showlogin: false, //true when implemented
       username: null,
       password: null,
       addissue: null,
-      showaddissue:false
+      showaddissue:false,
+      editissue: null,
+      showeditissue: null,
+      changesdetected: null
   }
 
   componentDidMount() {
@@ -44,6 +47,15 @@ class App extends Component {
 
   closeaddissue = () => {
     this.setState({showaddissue:false,addissue:null})
+  }
+
+  showeditissue = (issue) => {
+    console.log(issue);
+    this.setState({issue:issue,show:false,showeditissue:true,changesdetected:false})
+  }
+
+  closeeditissue = () => {
+    this.setState({showeditissue:false,editissue:null,changesdetected:null})
   }
 
   async deleteissue(issue){
@@ -76,8 +88,33 @@ class App extends Component {
     })
     .then(res => console.log(res))
     .catch(console.log);
-    //this.setState({showaddissue:false,addissue:obj});
-    //window.location.reload();
+    this.setState({showaddissue:false,addissue:obj});
+    window.location.reload();
+  }
+
+  async editissue(formobject){
+    var obj = {};
+    obj.CRID = formobject.CRID.value;
+    obj.Project = formobject.Project.value;
+    obj.Title = formobject.Title.value;
+    obj.Component = formobject.Component.value;
+    obj.Description = formobject.Description.value;
+    obj.Prog_or_Comm = formobject.Prog_or_Comm.value;
+    obj.Open = formobject.Open.checked;
+    console.log("editing:" + JSON.stringify(obj));
+    await fetch('http://127.0.0.1:8000/api/issues/'+this.state.issue.id+"/",
+    {
+      method:"PUT",
+      headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+      },
+      body:JSON.stringify(obj)
+    })
+    .then(res => console.log(res))
+    .catch(console.log);
+    this.setState({showeditissue:false,editissue:obj,issue:null});
+    window.location.reload();
   }
 
   closelogin = () => {
@@ -109,6 +146,10 @@ class App extends Component {
 
   showlogin = () => {
     this.setState({showlogin:true})
+  }
+
+  changed = () =>{
+    this.setState({changesdetected:true})
   }
 
   render(){
@@ -192,12 +233,62 @@ class App extends Component {
           </Button>
         </Modal.Footer>
       </Modal>
+      {/*Edit Issue*/}
+      <Modal size="lg" show={this.state.showeditissue} onHide={this.closeeditissue}>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Issue</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+        <Form>
+          <Form.Text className="text-muted">
+            Edit your Issue Details.
+          </Form.Text>
+          <br/>
+          <Form.Group controlId="formCRID">
+            <Form.Label>CR ID</Form.Label>
+            <Form.Control type="text" placeholder="Enter ALM CR ID" onChange={this.changed} defaultValue={this.state.issue?this.state.issue.CRID:null} ref={(CRID) => {this.CRID = CRID}}/>
+          </Form.Group>
+          <Form.Group controlId="formProject">
+            <Form.Label>Project</Form.Label>
+            <Form.Control type="text" placeholder="Enter Project (Stanley/Yeti/UPD/Others etc.)" onChange={this.changed} defaultValue={this.state.issue?this.state.issue.Project:null} ref={(Project) => {this.Project = Project}}/>
+          </Form.Group>
+          <Form.Group controlId="formTitle">
+            <Form.Label>Title</Form.Label>
+            <Form.Control type="text" placeholder="Enter Issue Title (short description)" onChange={this.changed} defaultValue={this.state.issue?this.state.issue.Title:null} ref={(Title) => {this.Title = Title}}/>
+          </Form.Group>
+          <Form.Group controlId="formComponent">
+            <Form.Label>Component</Form.Label>
+            <Form.Control type="text" placeholder="Enter Component (UI/MS/IO/Render etc.)" onChange={this.changed} defaultValue={this.state.issue?this.state.issue.Component:null} ref={(Component) => {this.Component = Component}}/>
+          </Form.Group>
+          <Form.Group controlId="formDescription">
+            <Form.Label>Description</Form.Label>
+            <Form.Control as="textarea" rows="5" placeholder="Enter Summary (detailed description)" onChange={this.changed} defaultValue={this.state.issue?this.state.issue.Description:null} ref={(Description) => {this.Description = Description}}/>
+          </Form.Group>
+          <Form.Group controlId="formProgOrComm">
+            <Form.Label>Progress/Comments</Form.Label>
+            <Form.Control as="textarea" rows="5" placeholder="Enter Latest Progress/Comments" onChange={this.changed} defaultValue={this.state.issue?this.state.issue.Prog_or_Comm:null} ref={(Prog_or_Comm) => {this.Prog_or_Comm = Prog_or_Comm}}/>
+          </Form.Group>
+          <Form.Group controlId="formOpen">
+          <Form.Check type="checkbox" label="Open" defaultChecked={this.state.issue?this.state.issue.Open:null} onChange={this.changed} ref={(Open) => {this.Open = Open}}/>
+          </Form.Group>
+        </Form>
+        </Modal.Body>
+        <Modal.Footer>
+        <Button variant="success" onClick={this.closeeditissue}>
+          Cancel
+        </Button>
+          <Button variant="danger" disabled={this.state.changesdetected?false:true} onClick={(e) => this.editissue(this)}>
+            Edit
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      {/*Main Navigation Bar*/}
         <Navbar bg="dark" variant="dark" expang="lg">
           <Navbar.Brand href="#home">Issue Tracker</Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="mr-auto">
-              <Nav.Link><Button onClick={this.showaddissue}>Add Issue</Button></Nav.Link>
+              <Nav.Link><Button onClick={this.showaddissue}><FontAwesomeIcon icon={faPlus}/></Button></Nav.Link>
               <Nav.Link>{this.state.loggedin?<Button onClick={this.showlogin}>Logout</Button>:<Button onClick={this.showlogin}>Login</Button>}</Nav.Link>
             </Nav>
             <Form inline>
@@ -206,7 +297,8 @@ class App extends Component {
             </Form>
           </Navbar.Collapse>
         </Navbar>
-        <Table striped bordered condensed="True" hover>
+        {/*Issue Table*/}
+        <Table id="DataTable" striped bordered condensed="True" hover>
           <thead>
             <tr>
               <th>#</th>
@@ -232,6 +324,7 @@ class App extends Component {
           }
           </tbody>
         </Table>
+        {/*Veiw-Delete*/}
         <Modal show={this.state.show} onHide={this.handleClose}>
           <Modal.Header closeButton>
             <Modal.Title>Issue # {this.state.issue?this.state.issue.id:-1}</Modal.Title>
@@ -242,7 +335,7 @@ class App extends Component {
           Project : {this.state.issue?this.state.issue.Project:""}<br/>
           Component : {this.state.issue?this.state.issue.Component:""}<br/>
           Description : {this.state.issue?this.state.issue.Description:""}<br/>
-          Progress/Comments : {this.state.issue?this.state.issue.CRID:""}<br/>
+          Progress/Comments : {this.state.issue?this.state.issue.Prog_or_Comm:""}<br/>
           Open? : {
             this.state.issue?
             (
@@ -252,11 +345,11 @@ class App extends Component {
           }<br/>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="success" onClick={this.handleClose}>
-              Edit
+            <Button variant="success" onClick={(e) => this.showeditissue(this.state.issue?this.state.issue:null)}>
+              <FontAwesomeIcon icon={faEdit}/>
             </Button>
             <Button variant="danger" onClick={(e) => this.deleteissue(this.state.issue?this.state.issue:null)}>
-              Delete
+              <FontAwesomeIcon icon={faTrashAlt}/>
             </Button>
           </Modal.Footer>
         </Modal>
