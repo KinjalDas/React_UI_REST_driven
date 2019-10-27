@@ -161,12 +161,13 @@ class App extends Component {
     !str.replace(/\s/g, '').length?found = false:found = true;
     if(found){
       for (var i = 0; i < this.state.issues.length; i++) {
+        var CRID = this.state.issues[i].CRID.replace(/\s+/g, '');
         var Title = this.state.issues[i].Title.replace(/\s+/g, '');
         var Project = this.state.issues[i].Project.replace(/\s+/g, '');
         var Component = this.state.issues[i].Component.replace(/\s+/g, '');
         var Description = this.state.issues[i].Description.replace(/\s+/g, '');
         var Prog_or_Comm = this.state.issues[i].Prog_or_Comm.replace(/\s+/g, '');
-        if(Title.includes(str)||Project.includes(str)||Component.includes(str)||Description.includes(str)||Prog_or_Comm.includes(str)){
+        if(CRID.includes(str)||Title.includes(str)||Project.includes(str)||Component.includes(str)||Description.includes(str)||Prog_or_Comm.includes(str)){
           foundissues.push(this.state.issues[i]);
         }
       }
