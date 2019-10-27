@@ -19,7 +19,9 @@ class App extends Component {
       showaddissue:false,
       editissue: null,
       showeditissue: null,
-      changesdetected: null
+      changesdetected: null,
+      filtered: false,
+      filteredissues: null
   }
 
   componentDidMount() {
@@ -148,8 +150,31 @@ class App extends Component {
     this.setState({showlogin:true})
   }
 
-  changed = () =>{
+  changed = () => {
     this.setState({changesdetected:true})
+  }
+
+  search = () => {
+    var str = this.Search.value;
+    str = str.replace(/\s+/g, '');
+    var found = null, foundissues=[];
+    !str.replace(/\s/g, '').length?found = false:found = true;
+    if(found){
+      for (var i = 0; i < this.state.issues.length; i++) {
+        var Title = this.state.issues[i].Title.replace(/\s+/g, '');
+        var Project = this.state.issues[i].Project.replace(/\s+/g, '');
+        var Component = this.state.issues[i].Component.replace(/\s+/g, '');
+        var Description = this.state.issues[i].Description.replace(/\s+/g, '');
+        var Prog_or_Comm = this.state.issues[i].Prog_or_Comm.replace(/\s+/g, '');
+        if(Title.includes(str)||Project.includes(str)||Component.includes(str)||Description.includes(str)||Prog_or_Comm.includes(str)){
+          foundissues.push(this.state.issues[i]);
+        }
+      }
+      this.setState({filtered:true,filteredissues:foundissues});
+    }
+    else{
+      this.setState({filtered:false,filteredissues:null})
+    }
   }
 
   render(){
@@ -292,8 +317,7 @@ class App extends Component {
               <Nav.Link>{this.state.loggedin?<Button onClick={this.showlogin}>Logout</Button>:<Button onClick={this.showlogin}>Login</Button>}</Nav.Link>
             </Nav>
             <Form inline>
-              <FormControl type="text" placeholder="Search" className="mr-bg-2" />
-              <Button variant="outline-info">Search</Button>
+              <FormControl type="text" onChange={this.search} ref={(Search) => {this.Search = Search}} placeholder="Search" className="mr-bg-2" />
             </Form>
           </Navbar.Collapse>
         </Navbar>
@@ -311,16 +335,31 @@ class App extends Component {
           </thead>
           <tbody>
           {
-            this.state.issues.map((issues) => (
-            <tr key={issues.id}>
-              <td><Button variant="primary" onClick={(e) => this.handleShow(issues)}>{issues.id}</Button></td>
-              <td>{issues.CRID}</td>
-              <td>{issues.Title}</td>
-              <td>{issues.Project}</td>
-              <td>{issues.Component}</td>
-              <td>{issues.Open?<FontAwesomeIcon icon={faCheck}/>:<FontAwesomeIcon icon={faTimes}/>}</td>
-            </tr>
-          ))
+            this.state.filtered?
+            (
+              this.state.filteredissues.map((issue) => (
+                <tr key={issue.id}>
+                  <td><Button variant="primary" onClick={(e) => this.handleShow(issue)}>{issue.id}</Button></td>
+                  <td>{issue.CRID}</td>
+                  <td>{issue.Title}</td>
+                  <td>{issue.Project}</td>
+                  <td>{issue.Component}</td>
+                  <td>{issue.Open?<FontAwesomeIcon icon={faCheck}/>:<FontAwesomeIcon icon={faTimes}/>}</td>
+                </tr>
+              ))
+            ):
+            (
+              this.state.issues.map((issue) => (
+                <tr key={issue.id}>
+                  <td><Button variant="primary" onClick={(e) => this.handleShow(issue)}>{issue.id}</Button></td>
+                  <td>{issue.CRID}</td>
+                  <td>{issue.Title}</td>
+                  <td>{issue.Project}</td>
+                  <td>{issue.Component}</td>
+                  <td>{issue.Open?<FontAwesomeIcon icon={faCheck}/>:<FontAwesomeIcon icon={faTimes}/>}</td>
+                </tr>
+            ))
+          )
           }
           </tbody>
         </Table>
