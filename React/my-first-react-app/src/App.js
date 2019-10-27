@@ -125,8 +125,6 @@ class App extends Component {
 
   async login(event,email,pass){
     event.preventDefault();
-    console.log(email);
-    console.log(pass);
     //add login code here from login modal
     var encodedString = new Buffer(email + ':' + pass).toString('base64');
     var login = true;
@@ -141,8 +139,11 @@ class App extends Component {
     .then((response) => {return response;})
     .catch((error) => {login = false;console.log(error);});
     console.log(res);
-    if(!login){
+    if(login){
       this.setState({showlogin:false, loggedin:true, username:email, password:pass})
+    }
+    else{
+      this.setState({showlogin:false, loggedin:false, username:null, password:null})
     }
   }
 
