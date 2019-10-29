@@ -4,6 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Button,Table,Nav,Navbar,Form,FormControl,Modal } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck,faTimes,faPlus,faEdit,faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import ReactHtmlParser from 'react-html-parser';
 
 class App extends Component {
 
@@ -21,7 +22,8 @@ class App extends Component {
       showeditissue: null,
       changesdetected: null,
       filtered: false,
-      filteredissues: null
+      filteredissues: null,
+      defect: null
   }
 
   componentDidMount() {
@@ -31,11 +33,12 @@ class App extends Component {
       this.setState({ issues: data });
       console.log(data);
     })
-    .catch(console.log)
+    .catch((err) => console.log(err))
   }
 
   handleShow = (issue) => {
     console.log(issue);
+    this.getissue(issue.CRID);
     this.setState({issue:issue,show:true})
   }
 
@@ -129,22 +132,50 @@ class App extends Component {
     var encodedString = new Buffer(email + ':' + pass).toString('base64');
     var login = true;
     console.log(encodedString);
-    var res = await fetch("https://alm-2.corp.hpicloud.net:443/qcbin/authentication-point/alm-authenticate",{
+    await fetch("https://alm-2.corp.hpicloud.net:443/qcbin/api/authentication/sign-in",{
       credentials: "include",
       method: "POST",
       mode: "no-cors",
-      headers: {"Accept":"application/json","Content-Type": "application/json"},
-      body: "<alm-authentication><user>"+email+"</user><password>"+pass+"</password></alm-authentication>",
+      headers: {"Accept":"*/*","Content-Type": "application/json", "Authorization": "Basic "+ encodedString},
     })
-    .then((response) => {return response;})
-    .catch((error) => {login = false;console.log(error);});
-    console.log(res);
+    .catch((error) => {login = false});
     if(login){
       this.setState({showlogin:false, loggedin:true, username:email, password:pass})
     }
     else{
       this.setState({showlogin:false, loggedin:false, username:null, password:null})
     }
+  }
+
+  async getissue(CRID){
+    var res = false;
+    await fetch("https://alm-2.corp.hpicloud.net:443/qcbin/api/domains/IPG/projects/ClientSoftware/defects/62748",{
+      method: "GET",
+      headers: {"Accept":"application/json","Content-Type": "application/json"}})
+      .then((response) => response.json())
+      .then((data) => {res=data})
+      .catch((error) => console.log(error));
+      if(res===false){
+        this.setState ({defect:"ALM Query Failed!"});
+      }
+      else{
+        res = res.description.replace(/<html>/g,'');
+        res = res.replace(/<body>/g,'');
+        res = res.replace('</body>','');
+        res = res.replace('</html>','');
+        this.setState ({defect:res});
+      }
+  }
+
+  async logout(){
+    var encodedString = new Buffer(this.state.username + ':' + this.state.password).toString('base64');
+    await fetch("https://alm-2.corp.hpicloud.net:443/qcbin/api/authentication/sign-out",{
+      credentials: "include",
+      method: "POST",
+      mode: "no-cors",
+      headers: {"Accept":"*/*","Content-Type": "text/plain", "Authorization": "Basic "+ encodedString},
+    })
+    .then((response) => {this.setState({showlogin:false, loggedin:false, username:null, password:null})})
   }
 
   showlogin = () => {
@@ -316,7 +347,7 @@ class App extends Component {
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="mr-auto">
               <Nav.Link><Button onClick={this.showaddissue}><FontAwesomeIcon icon={faPlus}/></Button></Nav.Link>
-              <Nav.Link>{this.state.loggedin?<Button onClick={this.showlogin}>Logout</Button>:<Button onClick={this.showlogin}>Login</Button>}</Nav.Link>
+              <Nav.Link>{this.state.loggedin?<Button onClick={(e) => this.logout(e,this.state.username,this.state.pasword)}>Logout</Button>:<Button onClick={this.showlogin}>Login</Button>}</Nav.Link>
             </Nav>
             <Form inline>
               <FormControl type="text" onChange={this.search} ref={(Search) => {this.Search = Search}} placeholder="Search" className="mr-bg-2" />
@@ -375,6 +406,7 @@ class App extends Component {
           Title : {this.state.issue?this.state.issue.Title:""}<br/>
           Project : {this.state.issue?this.state.issue.Project:""}<br/>
           Component : {this.state.issue?this.state.issue.Component:""}<br/>
+          ALM Description : {this.state.issue?<div>{ ReactHtmlParser(this.state.defect) }</div>:"ALM Query Failed!"}<br/>
           Description : {this.state.issue?this.state.issue.Description:""}<br/>
           Progress/Comments : {this.state.issue?this.state.issue.Prog_or_Comm:""}<br/>
           Open? : {
