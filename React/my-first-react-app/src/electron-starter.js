@@ -13,8 +13,8 @@ let mainWindow;
 
 function createWindow() {
     // Create the browser window.
-    app.commandLine.appendSwitch('disable-web-security');
-    mainWindow = new BrowserWindow({width: 800, height: 600, "webPreferences": {"webSecurity": false}});
+    //app.commandLine.appendSwitch('disable-web-security');
+    mainWindow = new BrowserWindow({width: 800, height: 600, webPreferences: {webSecurity: false, javaccript: true}});
     mainWindow.setMenu(null)
 
     // and load the index.html of the app.
