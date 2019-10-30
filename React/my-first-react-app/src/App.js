@@ -12,10 +12,6 @@ class App extends Component {
       issues: [],
       show:false,
       issue: null,
-      loggedin: false,
-      showlogin: false, //true when implemented
-      username: null,
-      password: null,
       addissue: null,
       showaddissue:false,
       editissue: null,
@@ -31,19 +27,17 @@ class App extends Component {
     .then(res => res.json())
     .then((data) => {
       this.setState({ issues: data });
-      console.log(data);
     })
     .catch((err) => console.log(err))
   }
 
   handleShow = (issue) => {
-    console.log(issue);
     this.getissue(issue.CRID);
     this.setState({issue:issue,show:true})
   }
 
   handleClose = () => {
-    this.setState({show:false})
+    this.setState({show:false,defect:null})
   }
 
   showaddissue = () => {
@@ -55,7 +49,6 @@ class App extends Component {
   }
 
   showeditissue = (issue) => {
-    console.log(issue);
     this.setState({issue:issue,show:false,showeditissue:true,changesdetected:false})
   }
 
@@ -64,9 +57,7 @@ class App extends Component {
   }
 
   async deleteissue(issue){
-    console.log("deleting:" + JSON.stringify(issue));
     await fetch('http://127.0.0.1:8000/api/issues/'+issue.id,{method:"DELETE"})
-    .then(res => console.log(res))
     .catch(console.log);
     window.location.reload();
     this.setState({show:false})
@@ -81,7 +72,6 @@ class App extends Component {
     obj.Description = formobject.Description.value;
     obj.Prog_or_Comm = formobject.Prog_or_Comm.value;
     obj.Open = formobject.Open.checked;
-    console.log("adding:" + JSON.stringify(obj));
     await fetch('http://127.0.0.1:8000/api/issues/',
     {
       method:"POST",
@@ -91,7 +81,6 @@ class App extends Component {
       },
       body:JSON.stringify(obj)
     })
-    .then(res => console.log(res))
     .catch(console.log);
     this.setState({showaddissue:false,addissue:obj});
     window.location.reload();
@@ -106,7 +95,6 @@ class App extends Component {
     obj.Description = formobject.Description.value;
     obj.Prog_or_Comm = formobject.Prog_or_Comm.value;
     obj.Open = formobject.Open.checked;
-    console.log("editing:" + JSON.stringify(obj));
     await fetch('http://127.0.0.1:8000/api/issues/'+this.state.issue.id+"/",
     {
       method:"PUT",
@@ -116,7 +104,6 @@ class App extends Component {
       },
       body:JSON.stringify(obj)
     })
-    .then(res => console.log(res))
     .catch(console.log);
     this.setState({showeditissue:false,editissue:obj,issue:null});
     window.location.reload();
@@ -126,30 +113,9 @@ class App extends Component {
     this.setState({showlogin:false,username:null,password:null})
   }
 
-  async login(event,email,pass){
-    event.preventDefault();
-    //add login code here from login modal
-    var encodedString = new Buffer(email + ':' + pass).toString('base64');
-    var login = true;
-    console.log(encodedString);
-    await fetch("https://alm-2.corp.hpicloud.net:443/qcbin/api/authentication/sign-in",{
-      credentials: "include",
-      method: "POST",
-      mode: "no-cors",
-      headers: {"Accept":"*/*","Content-Type": "application/json", "Authorization": "Basic "+ encodedString},
-    })
-    .catch((error) => {login = false});
-    if(login){
-      this.setState({showlogin:false, loggedin:true, username:email, password:pass})
-    }
-    else{
-      this.setState({showlogin:false, loggedin:false, username:null, password:null})
-    }
-  }
-
   async getissue(CRID){
     var res = false;
-    await fetch("https://alm-2.corp.hpicloud.net:443/qcbin/api/domains/IPG/projects/ClientSoftware/defects/62748",{
+    await fetch("https://alm-2.corp.hpicloud.net:443/qcbin/api/domains/IPG/projects/ClientSoftware/defects/"+CRID,{
       method: "GET",
       headers: {"Accept":"application/json","Content-Type": "application/json"}})
       .then((response) => response.json())
@@ -165,21 +131,6 @@ class App extends Component {
         res = res.replace('</html>','');
         this.setState ({defect:res});
       }
-  }
-
-  async logout(){
-    var encodedString = new Buffer(this.state.username + ':' + this.state.password).toString('base64');
-    await fetch("https://alm-2.corp.hpicloud.net:443/qcbin/api/authentication/sign-out",{
-      credentials: "include",
-      method: "POST",
-      mode: "no-cors",
-      headers: {"Accept":"*/*","Content-Type": "text/plain", "Authorization": "Basic "+ encodedString},
-    })
-    .then((response) => {this.setState({showlogin:false, loggedin:false, username:null, password:null})})
-  }
-
-  showlogin = () => {
-    this.setState({showlogin:true})
   }
 
   changed = () => {
@@ -213,35 +164,6 @@ class App extends Component {
   render(){
     return (
       <div className="App">
-      {/* Login */}
-      <Modal show={this.state.showlogin} onHide={this.closelogin}>
-        <Modal.Header closeButton>
-          <Modal.Title>Login</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-        <Form>
-          <Form.Group controlId="formBasicEmail">
-            <Form.Label>Email address</Form.Label>
-            <Form.Control type="email" placeholder="Enter email" ref={(email) => {this.email = email}}/>
-          </Form.Group>
-          <Form.Group controlId="formBasicPassword">
-            <Form.Label>Password</Form.Label>
-            <Form.Control type="password" placeholder="Password" ref={(pass) => {this.pass = pass}}/>
-          </Form.Group>
-          <Form.Text className="text-muted">
-            Enter your ALM credentials.
-          </Form.Text>
-        </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={this.closelogin}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={(e) => this.login(e,this.email.value,this.pass.value)}>
-            Login
-          </Button>
-        </Modal.Footer>
-      </Modal>
       {/* Add Issue */}
       <Modal size="lg" show={this.state.showaddissue} onHide={this.closeaddissue}>
         <Modal.Header closeButton>
@@ -347,7 +269,6 @@ class App extends Component {
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="mr-auto">
               <Nav.Link><Button onClick={this.showaddissue}><FontAwesomeIcon icon={faPlus}/></Button></Nav.Link>
-              <Nav.Link>{this.state.loggedin?<Button onClick={(e) => this.logout(e,this.state.username,this.state.pasword)}>Logout</Button>:<Button onClick={this.showlogin}>Login</Button>}</Nav.Link>
             </Nav>
             <Form inline>
               <FormControl type="text" onChange={this.search} ref={(Search) => {this.Search = Search}} placeholder="Search" className="mr-bg-2" />
@@ -397,7 +318,7 @@ class App extends Component {
           </tbody>
         </Table>
         {/*Veiw-Delete*/}
-        <Modal show={this.state.show} onHide={this.handleClose}>
+        <Modal size="lg" show={this.state.show} onHide={this.handleClose}>
           <Modal.Header closeButton>
             <Modal.Title>Issue # {this.state.issue?this.state.issue.id:-1}</Modal.Title>
           </Modal.Header>
