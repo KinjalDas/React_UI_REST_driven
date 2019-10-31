@@ -1,0 +1,2 @@
+cd Django\application_tracker_backend
+python manage.py runserver
