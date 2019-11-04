@@ -1,2 +1,4 @@
 cd React\my-first-react-app
-npm start
+call npm run build
+call npm install -g serve
+serve -s build
